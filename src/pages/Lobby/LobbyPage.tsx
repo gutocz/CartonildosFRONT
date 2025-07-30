@@ -45,7 +45,7 @@ function LobbyPage() {
     <div className={styles.lobbyContainer}>
       {error && <AlertBox message={error} onClose={() => setError(null)} />}
       <div className={styles.joinBox}>
-        <h1 className={styles.title}>Cartas Contra a Humanidade</h1>
+        <h1 className={styles.title}>Cartonildos</h1>
         <p className={styles.subtitle}>Entre em uma sala para jogar</p>
         <input
           type="text"
