@@ -1,0 +1,77 @@
+.lobbyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: #1a1a1a;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.joinBox {
+  background: #242424;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  border: 1px solid #333;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #a0a0a0;
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+.nickInput {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background-color: #333;
+  color: #fff;
+  font-size: 1.1rem;
+  box-sizing: border-box;
+}
+
+.nickInput:focus {
+  outline: none;
+  border-color: #6a0dad;
+  box-shadow: 0 0 10px rgba(106, 13, 173, 0.5);
+}
+
+.joinButton {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-image: linear-gradient(45deg, #6a0dad, #8a2be2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.joinButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+}
+
+.joinButton:disabled {
+  background-image: linear-gradient(45deg, #555, #777);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
