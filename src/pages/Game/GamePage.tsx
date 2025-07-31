@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import type { User, UserScore, CardOnTable, WebSocketMessage } from '../../types';
 import ScoreBoardComponent from '../../components/ScoreBoardComponent/ScoreBoardComponent';
@@ -18,6 +18,7 @@ function GamePage() {
     const [winner, setWinner] = useState<{ username: string; points: number} | null>(null);
 
     const { messages, sendMessage } = useWebSocket();
+    const processedMessagesCount = useRef(0);
 
     useEffect(() => {
         sendMessage('getMyUser', "");
@@ -25,45 +26,52 @@ function GamePage() {
     }, [sendMessage]);
 
     useEffect(() => {
-        const lastMessage: WebSocketMessage | undefined = messages[messages.length - 1];
-        if (!lastMessage) return;
+        const newMessages = messages.slice(processedMessagesCount.current);
+        if (newMessages.length === 0) return;
 
-        switch (lastMessage.type) {
-            case 'getUserResponse':
-                setCurrentUser(lastMessage.payload);
-                break;
-            case 'userListUpdate':
-                setAllUsers(lastMessage.payload);
-                break;
-            case 'getLeaderResponse':
-                setLeader(lastMessage.payload);
-                break;
-            case 'startGameResponse':
-            case 'nextRoundResponse':
-                setGameIsRunning(true);
-                setRoundMaster(lastMessage.payload.roundMaster);
-                setQuestion(lastMessage.payload.question);
-                setTable(new Map());
-                setWinner(null);
-                setAlreadyPlayed(false);
-                break;
-            case 'restartGameResponse':
-                setGameIsRunning(false);
-                setRoundMaster("");
-                setQuestion("");
-                setTable(new Map());
-                setWinner(null);
-                setAlreadyPlayed(false);
-                break;
-            case 'tableResponse':
-                setTable(new Map(Object.entries(lastMessage.payload)));
-                break;
-            case 'winnerChosen':
-                setWinner({ username: lastMessage.payload.winner, points: lastMessage.payload.points });
-                break;
-            default:
-                break;
-        }
+        newMessages.forEach(message => {
+            if (!message) return;
+
+            switch (message.type) {
+                case 'getUserResponse':
+                    setCurrentUser(message.payload);
+                    break;
+                case 'userListUpdate':
+                    setAllUsers(message.payload);
+                    break;
+                case 'getLeaderResponse':
+                    setLeader(message.payload);
+                    break;
+                case 'startGameResponse':
+                case 'nextRoundResponse':
+                    setGameIsRunning(true);
+                    setRoundMaster(message.payload.roundMaster);
+                    setQuestion(message.payload.question);
+                    setTable(new Map());
+                    setWinner(null);
+                    setAlreadyPlayed(false);
+                    break;
+                case 'restartGameResponse':
+                    setGameIsRunning(false);
+                    setRoundMaster("");
+                    setQuestion("");
+                    setTable(new Map());
+                    setWinner(null);
+                    setAlreadyPlayed(false);
+                    break;
+                case 'tableResponse':
+                    setTable(new Map(Object.entries(message.payload)));
+                    break;
+                case 'winnerChosen':
+                    setWinner({ username: message.payload.winner, points: message.payload.points });
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        processedMessagesCount.current = messages.length;
+
     }, [messages]);
 
     const handleHandCardClick = (cardContent: string) => {
