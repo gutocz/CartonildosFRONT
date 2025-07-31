@@ -16,6 +16,7 @@ function GamePage() {
     const [table, setTable] = useState<Map<string, CardOnTable>>(new Map());
     const [alreadyPlayed, setAlreadyPlayed] = useState(false);
     const [winner, setWinner] = useState<{ username: string; points: number} | null>(null);
+    const [lastProcessedIndex, setLastProcessedIndex] = useState(-1);
 
     const { messages, sendMessage } = useWebSocket();
 
@@ -25,46 +26,56 @@ function GamePage() {
     }, [sendMessage]);
 
     useEffect(() => {
-        const lastMessage: WebSocketMessage | undefined = messages[messages.length - 1];
-        if (!lastMessage) return;
-
-        switch (lastMessage.type) {
-            case 'getUserResponse':
-                setCurrentUser(lastMessage.payload);
-                break;
-            case 'userListUpdate':
-                setAllUsers(lastMessage.payload);
-                break;
-            case 'getLeaderResponse':
-                setLeader(lastMessage.payload);
-                break;
-            case 'startGameResponse':
-            case 'nextRoundResponse':
-                setGameIsRunning(true);
-                setRoundMaster(lastMessage.payload.roundMaster);
-                setQuestion(lastMessage.payload.question);
-                setTable(new Map());
-                setWinner(null);
-                setAlreadyPlayed(false);
-                break;
-            case 'restartGameResponse':
-                setGameIsRunning(false);
-                setRoundMaster("");
-                setQuestion("");
-                setTable(new Map());
-                setWinner(null);
-                setAlreadyPlayed(false);
-                break;
-            case 'tableResponse':
-                setTable(new Map(Object.entries(lastMessage.payload)));
-                break;
-            case 'winnerChosen':
-                setWinner({ username: lastMessage.payload.winner, points: lastMessage.payload.points });
-                break;
-            default:
-                break;
+        if (messages.length === 0 || lastProcessedIndex >= messages.length - 1) {
+            return;
         }
-    }, [messages]);
+
+        const newMessages = messages.slice(lastProcessedIndex + 1);
+
+        newMessages.forEach(message => {
+            if (!message) return;
+
+            switch (message.type) {
+                case 'getUserResponse':
+                    setCurrentUser(message.payload);
+                    break;
+                case 'userListUpdate':
+                    setAllUsers(message.payload);
+                    break;
+                case 'getLeaderResponse':
+                    setLeader(message.payload);
+                    break;
+                case 'startGameResponse':
+                case 'nextRoundResponse':
+                    setGameIsRunning(true);
+                    setRoundMaster(message.payload.roundMaster);
+                    setQuestion(message.payload.question);
+                    setTable(new Map());
+                    setWinner(null);
+                    setAlreadyPlayed(false);
+                    break;
+                case 'restartGameResponse':
+                    setGameIsRunning(false);
+                    setRoundMaster("");
+                    setQuestion("");
+                    setTable(new Map());
+                    setWinner(null);
+                    setAlreadyPlayed(false);
+                    break;
+                case 'tableResponse':
+                    setTable(new Map(Object.entries(message.payload)));
+                    break;
+                case 'winnerChosen':
+                    setWinner({ username: message.payload.winner, points: message.payload.points });
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        setLastProcessedIndex(messages.length - 1);
+
+    }, [messages, lastProcessedIndex]);
 
     const handleHandCardClick = (cardContent: string) => {
         if (!alreadyPlayed && currentUser?.username !== roundMaster && gameIsRunning) {
@@ -112,7 +123,7 @@ function GamePage() {
                 )}
 
                 {!gameIsRunning && !winner && (
-                     <div className={styles.waitingRoom}>
+                    <div className={styles.waitingRoom}>
                         <h2>Aguardando o líder iniciar o jogo...</h2>
                         <p>O líder da sala é: <strong>{leader}</strong></p>
                     </div>
@@ -138,7 +149,7 @@ function GamePage() {
                 )}
                 
                 <div className={styles.handArea}>
-                     {currentUser?.hand.map((cardContent, index) => (
+                    {currentUser?.hand.map((cardContent, index) => (
                         <Card
                             key={index}
                             content={cardContent}
