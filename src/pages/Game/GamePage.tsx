@@ -15,9 +15,10 @@ function GamePage() {
     const [question, setQuestion] = useState<string>("");
     const [table, setTable] = useState<Map<string, CardOnTable>>(new Map());
     const [alreadyPlayed, setAlreadyPlayed] = useState(false);
-    const [winner, setWinner] = useState<{ username: string; points: number} | null>(null);
+    const [winner, setWinner] = useState<{ username: string; points: number; cardContent: string } | null>(null);
+    const [showRoundMasterAlert, setShowRoundMasterAlert] = useState(false);
 
-    const { messages, sendMessage } = useWebSocket();
+    const { messages, sendMessage, user } = useWebSocket();
     const processedMessagesCount = useRef(0);
 
     useEffect(() => {
@@ -50,6 +51,10 @@ function GamePage() {
                     setTable(new Map());
                     setWinner(null);
                     setAlreadyPlayed(false);
+                    if (user?.username === message.payload.roundMaster) {
+                        setShowRoundMasterAlert(true);
+                        setTimeout(() => setShowRoundMasterAlert(false), 5000);
+                    }
                     break;
                 case 'restartGameResponse':
                     setGameIsRunning(false);
@@ -63,7 +68,11 @@ function GamePage() {
                     setTable(new Map(Object.entries(message.payload)));
                     break;
                 case 'winnerChosen':
-                    setWinner({ username: message.payload.winner, points: message.payload.points });
+                    setWinner({
+                        username: message.payload.winner,
+                        points: message.payload.points,
+                        cardContent: message.payload.cardContent
+                    });
                     break;
                 default:
                     break;
@@ -113,9 +122,16 @@ function GamePage() {
             </div>
 
             <div className={styles.mainContent}>
+                {showRoundMasterAlert && (
+                    <div className={styles.winnerAnnouncement}>
+                        <h2>Você é o Mestre da Rodada!</h2>
+                    </div>
+                )}
+
                 {winner && (
                     <div className={styles.winnerAnnouncement}>
-                        <h2>{winner.username} venceu a rodada!</h2>
+                        <h2>{winner.username} venceu a rodada com a carta:</h2>
+                        <Card content={winner.cardContent} type="answer" isClickable={false} />
                     </div>
                 )}
 

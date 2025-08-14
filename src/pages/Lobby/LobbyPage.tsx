@@ -8,13 +8,15 @@ import type { WebSocketMessage } from '../../types';
 function LobbyPage() {
   const [inputValue, setInputValue] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [isJoining, setIsJoining] = useState<boolean>(false);
   const navigate = useNavigate();
   const { messages, sendMessage, isConnected } = useWebSocket();
 
   const handleJoinRoom = () => {
-    if (inputValue.trim()) {
+    if (inputValue.trim() && !isJoining) {
+      setIsJoining(true);
       sendMessage('joinRoom', inputValue.trim());
-    } else {
+    } else if (!inputValue.trim()) {
       setError("O nome de usuário não pode ser vazio.");
     }
   };
@@ -31,8 +33,11 @@ function LobbyPage() {
       switch (lastMessage.type) {
         case "error":
           setError(lastMessage.payload);
+          setIsJoining(false);
           break;
         case "sucessJoinRoom":
+          // The payload is now an object with user and userList
+          // You can use this data to update the context or state if needed
           navigate('/game');
           break;
         default:
@@ -55,13 +60,14 @@ function LobbyPage() {
           placeholder="Digite seu nick..."
           className={styles.nickInput}
           maxLength={20}
+          disabled={isJoining}
         />
         <button 
           onClick={handleJoinRoom} 
           className={styles.joinButton} 
-          disabled={!isConnected}
+          disabled={!isConnected || isJoining}
         >
-          {isConnected ? 'Entrar na Sala' : 'Conectando...'}
+          {isConnected ? (isJoining ? 'Entrando...' : 'Entrar na Sala') : 'Conectando...'}
         </button>
       </div>
     </div>

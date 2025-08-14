@@ -9,6 +9,8 @@ export interface UserScore {
     points: number;
 }
 
+export type UserList = UserScore[];
+
 export interface CardOnTable {
     cardContent: string;
     revealed: boolean;
